@@ -9,8 +9,14 @@ import scalafx.scene.text.Text
 object RecordTab extends ClosableTab {
   val serviceName = new TextField()
   val serviceInfo = new TextArea()
-  val passwordHasCapital = new CheckBox("大文字を1文字以上含める")
-  val passwordHasNumeral = new CheckBox("数字を1文字以上含める")
+  val passwordHasCapital: CheckBox = new CheckBox {
+    text = "大文字を1文字以上含める"
+    selected = true
+  }
+  val passwordHasNumeral: CheckBox = new CheckBox {
+    text = "数字を1文字以上含める"
+    selected = true
+  }
   val passwordHasSymbol = new CheckBox("記号を1文字以上含める")
   passwordHasSymbol.onAction = _ => {
     symbolsInPasswordBox.visible = !symbolsInPasswordBox.visible()
@@ -37,6 +43,17 @@ object RecordTab extends ClosableTab {
     } catch {
       case _: Exception => new MyAlert("Insert correct values.", AlertType.Error)
     }
+  }
+
+  def reset(): Unit = {
+    serviceName.text = ""
+    serviceInfo.text = ""
+    passwordHasCapital.selected = true
+    passwordHasNumeral.selected = true
+    passwordHasSymbol.selected = false
+    symbolsInPassword.text = ""
+    symbolsInPasswordBox.visible = false
+    lengthOfPassword.text = ""
   }
 
   text = "サービス登録"

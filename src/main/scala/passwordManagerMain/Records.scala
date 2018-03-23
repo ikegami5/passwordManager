@@ -3,6 +3,7 @@ package passwordManagerMain
 import java.io.{File, FileWriter}
 import java.util.NoSuchElementException
 
+import scalafx.collections.ObservableBuffer
 import scalafx.scene.control.Alert.AlertType
 
 import scala.io.Source
@@ -45,7 +46,10 @@ object Records {
     if (!contains(record.serviceName)) {
       records = records :+ record
       writeToFile()
+      GenerateTab.serviceName.items = ObservableBuffer(Records.records.map(record => record.serviceName))
+      GenerateTab.serviceName.value = GenerateTab.serviceName.items.get().get(0)
       new MyAlert("Recording successful!", AlertType.Information)
+      RecordTab.reset()
     } else {
       new MyAlert("The record already exists.", AlertType.Error)
     }
