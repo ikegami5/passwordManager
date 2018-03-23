@@ -3,7 +3,7 @@ package passwordManagerMain
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.control.{Button, ChoiceBox, PasswordField, TextArea}
-import scalafx.scene.layout.VBox
+import scalafx.scene.layout.{HBox, VBox}
 import scalafx.scene.paint.Color
 import scalafx.scene.text.Text
 
@@ -24,11 +24,16 @@ object GenerateTab extends ClosableTab {
           new TextArea {
             editable = false
           },
-          new Text("マスターパスワードを入力してね"),
-          new Text {
-            text = "注意：マスターパスワードは復元不可能だよ\n" +
-              "変更も基本的にできないから気をつけてね"
-            fill = Color.Red
+          new HBox {
+            alignment = Pos.BaselineLeft
+            children = Seq(
+              new Text("マスターパスワードを入力してね   "),
+              new Text {
+                text = "注意：マスターパスワードは復元不可能だよ\n" +
+                  "変更も基本的にできないから気をつけてね"
+                fill = Color.Red
+              }
+            )
           },
           new PasswordField {
 
