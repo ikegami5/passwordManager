@@ -2,9 +2,9 @@ package passwordManagerMain
 
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.{Insets, Pos}
-import scalafx.scene.control.{Button, ChoiceBox, PasswordField, TextArea}
+import scalafx.scene.control._
 import scalafx.scene.layout.{HBox, VBox}
-import scalafx.scene.paint.{Color, Paint}
+import scalafx.scene.paint.Color
 import scalafx.scene.text.{Font, Text}
 
 object GenerateTab extends ClosableTab {
@@ -13,11 +13,28 @@ object GenerateTab extends ClosableTab {
     value = if (!items.get().isEmpty) items.get().get(0) else ""
   }
   serviceName.onAction = _ => {
-    serviceInfo.text = if (serviceName.value() == null) "" else Records(serviceName.value()).serviceInfo
+    reload()
   }
   val serviceInfo: TextArea = new TextArea {
-    text = if (serviceName.value() == "") "" else Records(serviceName.value()).serviceInfo
     editable = false
+  }
+  val saltChangeButton: Button = new Button {
+    margin = Insets(10)
+    text = "パスワード変更"
+  }
+  saltChangeButton.onAction = _ => {
+    Records.appendSalt(Records(serviceName.value()))
+    reload()
+  }
+  val usePreviousSalts: CheckBox = new CheckBox {
+    margin = Insets(10)
+    text = "以前までのパスワードを使用する"
+  }
+  usePreviousSalts.onAction = _ => {
+    currentSalt.visible = !currentSalt.visible()
+  }
+  val currentSalt: ChoiceBox[String] = new ChoiceBox[String] {
+    margin = Insets(10)
   }
   val masterPassword = new PasswordField()
   val generateButton = new Button("生成")
@@ -28,6 +45,25 @@ object GenerateTab extends ClosableTab {
     fill = Color.Green
     font = new Font(24)
   }
+
+  def reload(): Unit = {
+    serviceName.value() match {
+      case null | "" =>
+        serviceInfo.text = ""
+        currentSalt.items = ObservableBuffer("現在のパスワード")
+      case name =>
+        serviceInfo.text = Records(name).serviceInfo
+        currentSalt.items = ObservableBuffer(
+          Records(name).salt.zipWithIndex.map {
+            case (_, index) => if (index == 0) "現在のパスワード" else index + "個前のパスワード"
+          }
+        )
+    }
+    usePreviousSalts.selected = false
+    currentSalt.visible = false
+    currentSalt.value = currentSalt.items.get().get(0)
+  }
+  reload()
 
   text = "パスワード生成"
   content = new VBox {
@@ -40,6 +76,10 @@ object GenerateTab extends ClosableTab {
           },
           serviceName,
           serviceInfo,
+          new HBox {
+            alignment = Pos.BottomLeft
+            children = Seq(saltChangeButton, usePreviousSalts, currentSalt)
+          },
           new HBox {
             alignment = Pos.BaselineLeft
             children = Seq(

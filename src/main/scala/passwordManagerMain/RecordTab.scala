@@ -39,7 +39,7 @@ object RecordTab extends ClosableTab {
       if (passwordHasSymbol.selected() && symbolsInPassword.text() == "") throw new Exception
       if (lengthOfPassword.text().toInt < 4) throw new Exception
       Records.append(Record(serviceName.text(), serviceInfo.text(), passwordHasCapital.selected(),
-        passwordHasNumeral.selected(), symbolsInPassword.text(), lengthOfPassword.text().toInt, "salt"))
+        passwordHasNumeral.selected(), symbolsInPassword.text(), lengthOfPassword.text().toInt))
     } catch {
       case _: Exception => new MyAlert("Insert correct values.", AlertType.Error)
     }

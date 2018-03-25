@@ -55,6 +55,19 @@ object Records {
     }
   }
 
+  def indexOf(record: Record): Int = {
+    records.indexWhere(r => r.serviceName == record.serviceName)
+  }
+
+  def update(index: Int, record: Record): Unit = {
+    records = records.updated(index, record)
+  }
+
+  def appendSalt(record: Record): Unit = {
+    update(indexOf(record), apply(record.serviceName).appendSalt())
+    writeToFile()
+  }
+
   def apply(serviceName: String): Record = {
     find(serviceName) match {
       case Some(record) => record
