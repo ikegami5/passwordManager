@@ -26,7 +26,7 @@ object RecordTab extends ClosableTab {
   val symbolsInPasswordBox: HBox = new HBox {
     alignment = Pos.BottomLeft
     children = Seq(
-      new Text("使える記号をスペースやコンマ等なしで入力してね："),
+      new Text("使える記号を入力してね(スペースやコンマ等も記号と判定されるよ)："),
       symbolsInPassword
     )
   }
@@ -34,14 +34,17 @@ object RecordTab extends ClosableTab {
   val lengthOfPassword = new TextField()
   val recordButton = new Button("登録")
   recordButton.onAction = _ => {
+    class InputException(message: String) extends Exception(message)
     try {
-      if (serviceName.text() == "") throw new Exception
-      if (passwordHasSymbol.selected() && symbolsInPassword.text() == "") throw new Exception
-      if (lengthOfPassword.text().toInt < 4) throw new Exception
+      if (serviceName.text().isEmpty) throw new InputException("サービス名が空だよ")
+      if (passwordHasSymbol.selected() && !(symbolsInPassword.text() matches """[ !"#$%&'()*+,-./:;<=>?@\[\\¥\]^_`{|}~]+"""))
+        throw new InputException("使う記号の欄にちゃんとした物を入力してね")
+      if (lengthOfPassword.text().toInt < 4) throw new InputException("パスワードの長さは最短4文字だよ")
       Records.append(Record(serviceName.text(), serviceInfo.text(), passwordHasCapital.selected(),
         passwordHasNumeral.selected(), symbolsInPassword.text(), lengthOfPassword.text().toInt))
     } catch {
-      case _: Exception => new MyAlert("Insert correct values.", AlertType.Error)
+      case e: InputException => new MyAlert(e.getMessage, AlertType.Error)
+      case _: Exception => new MyAlert("正しい値を入力してね", AlertType.Error)
     }
   }
 

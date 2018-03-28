@@ -1,11 +1,18 @@
 package passwordManagerMain
 
+import java.math.BigInteger
+import java.security.MessageDigest
+import java.util.{Timer, TimerTask}
+
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.{Insets, Pos}
+import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.control._
 import scalafx.scene.layout.{HBox, VBox}
 import scalafx.scene.paint.Color
 import scalafx.scene.text.{Font, Text}
+
+import scala.util.Random
 
 object GenerateTab extends ClosableTab {
   val serviceName: ChoiceBox[String] = new ChoiceBox[String] {
@@ -38,12 +45,101 @@ object GenerateTab extends ClosableTab {
   }
   val masterPassword = new PasswordField()
   val generateButton = new Button("生成")
-  generateButton.onAction = _ => {
+  class CountdownUntilDeletePassword extends TimerTask {
+    var secondsUntilDeletePassword = 30
 
+    override def run(): Unit = {
+      if (secondsUntilDeletePassword < 0) {
+        PasswordManager.writeToClipboard("")
+        passwordNotice.text = "パスワードはクリップボードから安全に消去されたよ\n\n"
+        cancel()
+        return
+      }
+      passwordNotice.text = "パスワードがクリップボードにコピーされたよ。\n" +
+        "Ctrl + V(Command + V)で貼り付けてね。\n" +
+        "消去まであと" + secondsUntilDeletePassword + "秒"
+      secondsUntilDeletePassword -= 1
+    }
+  }
+  var timer = new Timer()
+  var countdownUntilDeletePassword = new CountdownUntilDeletePassword
+  def password(): String = {
+    val salt = Records(serviceName.value()).salt(currentSalt.selectionModel().selectedIndexProperty().get())
+    def hash(str: String, saltIsBack: Boolean): String = {
+      val md = MessageDigest.getInstance("SHA-512")
+      val saltyStr = if (saltIsBack) str + salt else salt + str
+      md.update(saltyStr.getBytes)
+      val byteArray = md.digest()
+      val buffer = new StringBuffer
+      for (byte <- byteArray) {
+        val binaryStr = Integer.toBinaryString(byte & 0xff)
+        buffer.append("0" * (8 - binaryStr.length)).append(binaryStr)
+      }
+      buffer.toString
+    }
+    val hashTwice: String => String = (x: String) => hash(hash(x, saltIsBack = true), saltIsBack = false)
+    val hash16times: String => String = (hashTwice compose hashTwice) compose (hashTwice compose hashTwice)
+    val hash64times: String => String = (hash16times compose hash16times) compose (hash16times compose hash16times)
+    val hash128times: String => String = hash64times compose hash64times
+    val hashedString = hash128times(masterPassword.text())
+    def arrangeInPasswordFormat(str: String): String = {
+      val record = Records(serviceName.value())
+      val passwordLength: Int = record.lengthOfPassword
+      val initialSeed = Integer.parseInt(str.substring(456, 484), 2) + Integer.parseInt(str.substring(484), 2)
+      val alphabets = ('a' to 'z').toList.mkString
+      val CapitalAlphabets = if (record.passwordHasCapital) alphabets.toUpperCase else ""
+      val numerals = if (record.passwordHasNumeral) "0123456789" else ""
+      val symbols = record.symbolsInPassword
+      def lettersList(seed: Int): List[String] = {
+        Random.setSeed(seed)
+        Random.shuffle((alphabets + CapitalAlphabets + numerals + symbols).toList.map((_: Char).toString))
+      }
+      for (addSeed <- 0 to 100) {
+        val tmpPassword = (for (i <- 0 until passwordLength) yield {
+          val wordLength: Int = str.length / passwordLength
+          val wordString = str.substring(wordLength * i, wordLength * i + wordLength - 1)
+          val tmpLettersList = lettersList(initialSeed + addSeed)
+          tmpLettersList((BigInt(new BigInteger(wordString, 2)) % tmpLettersList.length).toInt)
+        }).mkString
+        def isProperPassword: Boolean = {
+          (tmpPassword matches ".*[a-z].*") &&
+            (tmpPassword matches (".*[" + CapitalAlphabets + "].*").replace("[].*", "")) &&
+            (tmpPassword matches (".*[" + numerals + "].*").replace("[].*", "")) &&
+            (tmpPassword matches (".*[" + symbols.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]") + "].*").replace("[].*", ""))
+        }
+        if (isProperPassword) return tmpPassword
+      }
+      throw new Exception("パスワードが生成できなかったよ\nパスワード変更を試してみてね")
+    }
+    arrangeInPasswordFormat(hashedString)
+  }
+  generateButton.onAction = _ => {
+    if (!(masterPassword.text() matches "[a-zA-Z0-9]{8,}")) {
+      masterPassword.text = ""
+      new MyAlert("マスターパスワードを入力してね(英数字8文字以上)", AlertType.Error)
+    } else if (serviceName.value() == "") {
+      masterPassword.text = ""
+      new MyAlert("新しいサービスを登録してね", AlertType.Error)
+    } else {
+      try {
+        PasswordManager.writeToClipboard(password())
+        countdownUntilDeletePassword.cancel()
+        countdownUntilDeletePassword = new CountdownUntilDeletePassword
+        timer.cancel()
+        timer = new Timer()
+        timer.schedule(countdownUntilDeletePassword, 0, 1000)
+      } catch {
+        case e: Exception => new MyAlert(e.getMessage, AlertType.Error)
+      } finally {
+        masterPassword.text = ""
+      }
+    }
   }
   val passwordNotice: Text = new Text {
+    text = "\n\n"
+    margin = Insets(10)
     fill = Color.Green
-    font = new Font(24)
+    font = new Font(18)
   }
 
   def reload(): Unit = {
@@ -94,9 +190,9 @@ object GenerateTab extends ClosableTab {
           masterPassword
         )
       },
-      new VBox {
+      new HBox {
         alignment = Pos.BottomRight
-        children = Seq(generateButton, passwordNotice)
+        children = Seq(passwordNotice, generateButton)
       }
     )
   }

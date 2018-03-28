@@ -1,5 +1,8 @@
 package passwordManagerMain
 
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
+
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.Scene
@@ -11,5 +14,18 @@ object PasswordManager extends JFXApp {
     scene = new Scene {
       content = new TabPane() += GenerateTab += RecordTab
     }
+  }
+
+  def writeToClipboard(str: String): Unit = {
+    val clipboard = Toolkit.getDefaultToolkit.getSystemClipboard
+    val stringSelection = new StringSelection(str)
+    clipboard.setContents(stringSelection, stringSelection)
+  }
+
+  override def stopApp(): Unit = {
+    writeToClipboard("")
+    GenerateTab.countdownUntilDeletePassword.cancel()
+    GenerateTab.timer.cancel()
+    super.stopApp()
   }
 }

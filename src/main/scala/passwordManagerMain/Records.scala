@@ -48,10 +48,10 @@ object Records {
       writeToFile()
       GenerateTab.serviceName.items = ObservableBuffer(Records.records.map(record => record.serviceName))
       GenerateTab.serviceName.value = GenerateTab.serviceName.items.get().get(0)
-      new MyAlert("Recording successful!", AlertType.Information)
+      new MyAlert("サービスの登録が成功したよ", AlertType.Information)
       RecordTab.reset()
     } else {
-      new MyAlert("The record already exists.", AlertType.Error)
+      new MyAlert("そのサービスはすでにあるよ", AlertType.Error)
     }
   }
 

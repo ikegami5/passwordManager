@@ -10,7 +10,7 @@ class Record(info: String) {
   val serviceInfo: String = data(1).replace("\\C", ",").replace("\\n", "\n")
   val passwordHasCapital: Boolean = data(2).toBoolean
   val passwordHasNumeral: Boolean = data(3).toBoolean
-  val symbolsInPassword: String = data(4).replace("\\C", ",")
+  val symbolsInPassword: String = data(4).replace("\\S", " ").replace("\\C", ",")
   val lengthOfPassword: Int = data(5).toInt
   var salt: List[String] = data.slice(6, data.length).toList.reverse
 
@@ -27,7 +27,8 @@ object Record {
              passwordHasNumeral: Boolean, symbolsInPassword: String, lengthOfPassword: Int): Record = {
     new Record(Seq(serviceName.replace(",", "\\C"), serviceInfo.replace("\n", "\\n").replace(",", "\\C"),
       passwordHasCapital.toString, passwordHasNumeral.toString,
-      symbolsInPassword.replace(",", "\\C"), lengthOfPassword.toString, generateSalt()).mkString(", "))
+      symbolsInPassword.toSet.toList.mkString.replace(",", "\\C").replace(" ", "\\S"), lengthOfPassword.min(64).toString,
+      generateSalt()).mkString(", "))
   }
 
   def generateSalt(): String = {
