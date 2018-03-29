@@ -3,11 +3,12 @@ package passwordManagerMain
 import java.security.SecureRandom
 
 import scala.util.Random
+import passwordManagerMain.PasswordManager._
 
 class Record(info: String) {
   val data: Array[String] = info.split(",", -1).map(s => s.trim)
   val serviceName: String = data(0).replace("\\C", ",")
-  val serviceInfo: String = data(1).replace("\\C", ",").replace("\\n", "\n")
+  val serviceInfo: String = data(1).replace("\\C", ",").replace("\\n", lineSeparator)
   val passwordHasCapital: Boolean = data(2).toBoolean
   val passwordHasNumeral: Boolean = data(3).toBoolean
   val symbolsInPassword: String = data(4).replace("\\S", " ").replace("\\C", ",")
@@ -25,7 +26,7 @@ object Record {
 
   def apply(serviceName: String, serviceInfo: String, passwordHasCapital: Boolean,
              passwordHasNumeral: Boolean, symbolsInPassword: String, lengthOfPassword: Int): Record = {
-    new Record(Seq(serviceName.replace(",", "\\C"), serviceInfo.replace("\n", "\\n").replace(",", "\\C"),
+    new Record(Seq(serviceName.replace(",", "\\C"), serviceInfo.replace(lineSeparator, "\\n").replace(",", "\\C"),
       passwordHasCapital.toString, passwordHasNumeral.toString,
       symbolsInPassword.toSet.toList.mkString.replace(",", "\\C").replace(" ", "\\S"), lengthOfPassword.min(64).toString,
       generateSalt()).mkString(", "))

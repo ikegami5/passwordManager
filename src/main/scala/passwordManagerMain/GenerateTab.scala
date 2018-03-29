@@ -11,6 +11,7 @@ import scalafx.scene.control._
 import scalafx.scene.layout.{HBox, VBox}
 import scalafx.scene.paint.Color
 import scalafx.scene.text.{Font, Text}
+import passwordManagerMain.PasswordManager._
 
 import scala.util.Random
 
@@ -50,13 +51,13 @@ object GenerateTab extends ClosableTab {
 
     override def run(): Unit = {
       if (secondsUntilDeletePassword < 0) {
-        PasswordManager.writeToClipboard("")
-        passwordNotice.text = "パスワードはクリップボードから安全に消去されたよ\n\n"
+        writeToClipboard("")
+        passwordNotice.text = "パスワードはクリップボードから安全に消去されたよ" + (lineSeparator * 2)
         cancel()
         return
       }
-      passwordNotice.text = "パスワードがクリップボードにコピーされたよ。\n" +
-        "Ctrl + V(Command + V)で貼り付けてね。\n" +
+      passwordNotice.text = "パスワードがクリップボードにコピーされたよ。" + lineSeparator +
+        "Ctrl + V(Command + V)で貼り付けてね。" + lineSeparator +
         "消去まであと" + secondsUntilDeletePassword + "秒"
       secondsUntilDeletePassword -= 1
     }
@@ -109,7 +110,7 @@ object GenerateTab extends ClosableTab {
         }
         if (isProperPassword) return tmpPassword
       }
-      throw new Exception("パスワードが生成できなかったよ\nパスワード変更を試してみてね")
+      throw new Exception("パスワードが生成できなかったよ" + lineSeparator + "パスワード変更を試してみてね")
     }
     arrangeInPasswordFormat(hashedString)
   }
@@ -122,7 +123,7 @@ object GenerateTab extends ClosableTab {
       new MyAlert("新しいサービスを登録してね", AlertType.Error)
     } else {
       try {
-        PasswordManager.writeToClipboard(password())
+        writeToClipboard(password())
         countdownUntilDeletePassword.cancel()
         countdownUntilDeletePassword = new CountdownUntilDeletePassword
         timer.cancel()
@@ -136,7 +137,7 @@ object GenerateTab extends ClosableTab {
     }
   }
   val passwordNotice: Text = new Text {
-    text = "\n\n"
+    text = lineSeparator * 2
     margin = Insets(10)
     fill = Color.Green
     font = new Font(18)
@@ -181,7 +182,7 @@ object GenerateTab extends ClosableTab {
             children = Seq(
               new Text("マスターパスワード(8文字以上)を入力してね   "),
               new Text {
-                text = "注意：マスターパスワードは復元不可能だよ\n" +
+                text = "注意：マスターパスワードは復元不可能だよ" + lineSeparator +
                   "変更も基本的にできないから気をつけてね"
                 fill = Color.Red
               }

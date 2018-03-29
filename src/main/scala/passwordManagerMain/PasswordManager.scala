@@ -16,6 +16,8 @@ object PasswordManager extends JFXApp {
     }
   }
 
+  def lineSeparator: String = System.lineSeparator()
+
   def writeToClipboard(str: String): Unit = {
     val clipboard = Toolkit.getDefaultToolkit.getSystemClipboard
     val stringSelection = new StringSelection(str)

@@ -5,6 +5,7 @@ import java.util.NoSuchElementException
 
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.control.Alert.AlertType
+import passwordManagerMain.PasswordManager._
 
 import scala.io.Source
 
@@ -75,6 +76,6 @@ object Records {
     }
   }
 
-  override def toString: String = records.map(_.toString).mkString("\n")
+  override def toString: String = records.map(_.toString).mkString(lineSeparator)
 
 }
