@@ -18,6 +18,10 @@ object PasswordManager extends JFXApp {
 
   def lineSeparator: String = System.lineSeparator()
 
+  def unifyLineSeparator(str: String): String = {
+    str.replace("\r\n", "\n").replace("\r", "\n").replace("\n", lineSeparator)
+  }
+
   def writeToClipboard(str: String): Unit = {
     val clipboard = Toolkit.getDefaultToolkit.getSystemClipboard
     val stringSelection = new StringSelection(str)

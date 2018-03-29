@@ -1,11 +1,11 @@
 package passwordManagerMain
 
-import java.io.{File, FileWriter}
+import java.io._
 import java.util.NoSuchElementException
 
+import passwordManagerMain.PasswordManager._
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.control.Alert.AlertType
-import passwordManagerMain.PasswordManager._
 
 import scala.io.Source
 
@@ -17,13 +17,18 @@ object Records {
     val source = Source.fromFile(file, "UTF-8")
     try {
       source.getLines.toList.map(s => new Record(s))
+    } catch {
+      case _: Exception =>
+        new MyAlert("読み込みが失敗したよ", AlertType.Error)
+        Nil
     } finally {
       source.close()
     }
   }
 
   def writeToFile(): Unit = {
-    val writer = new FileWriter(file)
+    val osw = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
+    val writer = new BufferedWriter(osw)
     try {
       writer.write(this.toString)
     } finally {
