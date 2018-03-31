@@ -26,7 +26,7 @@ object Record {
 
   def apply(serviceName: String, serviceInfo: String, passwordHasCapital: Boolean,
              passwordHasNumeral: Boolean, symbolsInPassword: String, lengthOfPassword: Int): Record = {
-    new Record(Seq(serviceName.replace(",", "\\C"), serviceInfo.replace(lineSeparator, "\\n").replace(",", "\\C"),
+    new Record(Seq(serviceName.replace(",", "\\C"), unifyLineSeparator(serviceInfo).replace(lineSeparator, "\\n").replace(",", "\\C"),
       passwordHasCapital.toString, passwordHasNumeral.toString,
       symbolsInPassword.toSet.toList.mkString.replace(",", "\\C").replace(" ", "\\S"), lengthOfPassword.min(64).toString,
       generateSalt()).mkString(", "))
