@@ -14,7 +14,19 @@ object Records {
   var records: List[Record] = readFromFile()
 
   def readFromFile(): List[Record] = {
-    val source = Source.fromFile(file, "UTF-8")
+    val source = try {
+      Source.fromFile(file, "UTF-8")
+    } catch {
+      case _: Exception =>
+        val osw = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
+        val writer = new BufferedWriter(osw)
+        try {
+          writer.write("")
+        } finally {
+          writer.close()
+        }
+        Source.fromFile(file, "UTF-8")
+    }
     try {
       source.getLines.toList.map(s => new Record(s))
     } catch {
