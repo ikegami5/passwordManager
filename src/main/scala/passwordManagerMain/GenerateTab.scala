@@ -79,21 +79,21 @@ object GenerateTab extends ClosableTab {
       buffer.toString
     }
     val hashTwice: String => String = (x: String) => hash(hash(x, saltIsBack = true), saltIsBack = false)
-    val hash16times: String => String = (hashTwice compose hashTwice) compose (hashTwice compose hashTwice)
-    val hash64times: String => String = (hash16times compose hash16times) compose (hash16times compose hash16times)
-    val hash128times: String => String = hash64times compose hash64times
-    val hashedString = hash128times(masterPassword.text())
+    val hash8times: String => String = (hashTwice compose hashTwice) compose (hashTwice compose hashTwice)
+    val hash32times: String => String = (hash8times compose hash8times) compose (hash8times compose hash8times)
+    val hash64times: String => String = hash32times compose hash32times
+    val hashedString = hash64times(masterPassword.text())
     def arrangeInPasswordFormat(str: String): String = {
       val record = Records(serviceName.value())
       val passwordLength: Int = record.lengthOfPassword
       val initialSeed = Integer.parseInt(str.substring(456, 484), 2) + Integer.parseInt(str.substring(484), 2)
       val alphabets = ('a' to 'z').toList.mkString
-      val CapitalAlphabets = if (record.passwordHasCapital) alphabets.toUpperCase else ""
+      val capitalAlphabets = if (record.passwordHasCapital) alphabets.toUpperCase else ""
       val numerals = if (record.passwordHasNumeral) "0123456789" else ""
       val symbols = record.symbolsInPassword
       def lettersList(seed: Int): List[String] = {
         Random.setSeed(seed)
-        Random.shuffle((alphabets + CapitalAlphabets + numerals + symbols).toList.map((_: Char).toString))
+        Random.shuffle((alphabets + capitalAlphabets + numerals + symbols).toList.map((_: Char).toString))
       }
       for (addSeed <- 0 to 100) {
         val tmpPassword = (for (i <- 0 until passwordLength) yield {
@@ -104,9 +104,9 @@ object GenerateTab extends ClosableTab {
         }).mkString
         def isProperPassword: Boolean = {
           (tmpPassword matches ".*[a-z].*") &&
-            (tmpPassword matches (".*[" + CapitalAlphabets + "].*").replace("[].*", "")) &&
-            (tmpPassword matches (".*[" + numerals + "].*").replace("[].*", "")) &&
-            (tmpPassword matches (".*[" + symbols.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]") + "].*").replace("[].*", ""))
+            (if (record.passwordHasCapital) (tmpPassword matches (".*[" + capitalAlphabets + "].*")) else true) &&
+            (if (record.passwordHasNumeral) (tmpPassword matches (".*[" + numerals + "].*")) else true) &&
+            (if (symbols.isEmpty()) true else (tmpPassword matches (".*[" + symbols.replaceAll("[\\Q-/\\^$*+?.()|[]{}\\E]", "\\\\$0") + "].*")))
         }
         if (isProperPassword) return tmpPassword
       }

@@ -2,3 +2,6 @@
 target/
 .bsp
 data.txt
+.vscode
+.metals
+.bloop
