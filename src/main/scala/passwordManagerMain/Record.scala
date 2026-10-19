@@ -3,7 +3,7 @@ package passwordManagerMain
 import java.security.SecureRandom
 
 import scala.util.Random
-import passwordManagerMain.PasswordManager._
+import passwordManagerMain.LineSeparators._
 
 class Record(info: String) {
   val data: Array[String] = info.split(",", -1).map(s => s.trim)

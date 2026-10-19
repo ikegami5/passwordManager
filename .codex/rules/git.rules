@@ -1,0 +1,21 @@
+# Project-local Git permissions. Loaded when this project's .codex layer is trusted.
+# Source: https://learn.chatgpt.com/docs/agent-configuration/rules
+# Approval rules do not replace the user's instructions about what to commit/push.
+prefix_rule(
+    pattern = ["git", ["status", "diff", "log", "show", "rev-parse", "ls-files", "ls-remote", "add", "commit", "fetch", "push"]],
+    decision = "allow",
+    justification = "User approved routine Git inspection, staging, commits, fetches and pushes for this project.",
+    match = [
+        "git status --short",
+        "git diff --cached --check",
+        "git add -A",
+        "git commit -m maintenance",
+        "git fetch origin",
+        "git push origin master",
+    ],
+    not_match = [
+        "git reset --hard",
+        "git clean -fd",
+        "git config --global user.name example",
+    ],
+)

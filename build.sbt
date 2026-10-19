@@ -11,6 +11,11 @@ libraryDependencies ++= javaFXModules.map(
   m => "org.openjfx" % s"javafx-$m" % "11.0.2" classifier "mac" classifier "win" classifier "linux"
 )
 
+// No test framework dependency: run the sequential, headless assertion suite.
+Test / fork := true
+Test / javaOptions += "-Djava.awt.headless=true"
+Test / test := (Test / runMain).toTask(" passwordManagerMain.CompatibilityTest").value
+
 // sbt-assembly settings
 test in assembly := {}
 assemblyJarName in assembly := jarFileName
